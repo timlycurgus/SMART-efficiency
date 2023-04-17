@@ -1,4 +1,9 @@
-### This script will analyze a SMART using all four techniques at once.
+##' This script will analyze a SMART using all four techniques at once.
+##' Note that these functions are written assuming one baseline covariate X
+##' and one auxiliary variable L. Many functions here require some minor 
+##' adjustments if you would like to control for more than one baseline 
+##' covariate at a time. 
+
 
 analyze_SMARTfull <- function(d, 
                               design = 2,
@@ -23,14 +28,12 @@ analyze_SMARTfull <- function(d,
     S = data.frame(cbind(wts[[2]], wts[[3]]))
     S$nrep = 3
     S <- as.data.frame(lapply(S, rep, S$nrep))
-    #colnames(S) = c('S1', 'SY0', 'SX', 'S11', 'S01', 'S1', 'SL')
-    
+
     d1 <- reshape(d$data, varying = list(grep("Y", names(d$data))),
                   ids = d$data$id, 
                   times = times, direction = "long", v.names = "Y")
     d1 <- d1[order(d1$id, d1$time), ]
-    #S <- d1[ , grepl( "S" , names( d1 ) ) ]
-    
+
   } else{
     d1 <- reshape(d$data, varying = list(grep("Y", names(d$data))),
                   ids = d$data$id, 
@@ -304,8 +307,7 @@ estimate.sigma2_full <- function(d, times, spltime, design, gammas,
 estimate.rho_full <- function(d, times, spltime, design, sigma, gammas,
                               corstr = c("exchangeable", "ar1", "unstructured"),
                               pool.dtr = TRUE) {
-  ## FIXME: Allow for different rhos across DTRs
-  
+
   corstr <- match.arg(corstr)
   if (any(is(d$Y) == "NULL")) stop("d has to be in long format.")
   
@@ -315,16 +317,6 @@ estimate.rho_full <- function(d, times, spltime, design, sigma, gammas,
   Dmat <- mod.derivs(times, spltime, design)
   
   sigma <- reshapeSigma(sigma, times, design)
-  
-  # if (sum(rownames(sigma) == times) == length(times) & ncol(sigma) != nDTR) {
-  #   sigma <- matrix(rep(sigma, nDTR), ncol = nDTR)
-  # } else if (sum(grepl("dtr", rownames(sigma))) != 0) {
-  #   sigma <- t(matrix(rep(sigma, length(times)), ncol = length(times)))
-  # } else if (nrow(sigma) == ncol(sigma) & ncol(sigma) == 1) {
-  #   sigma <- matrix(rep(sigma, nDTR * length(times)), ncol = nDTR)
-  # } else if (nrow(sigma) == length(times) & ncol(sigma) == 1) {
-  #   sigma <- matrix(rep(sigma, nDTR), ncol = nDTR)
-  # }
   
   colnames(sigma) <- paste0("dtr", 1:nDTR)
   rownames(sigma) <- paste0("time", times)
@@ -639,11 +631,6 @@ mod.derivs <- function(times, spltime, design) {
       nrow = 1)
     }))
   })
-  
-  # Since we constructed dmat using the model for design 1, and the models for
-  # designs 2 and 3 are nested inside the design 1 model (see paper supplement),
-  # we can remove the columns of dmat that are all zeros, as these correspond to
-  # parameters that aren't in the nested model.
   
   # Find columns where all entries are zero for all DTRs
   removeCols <- vector("integer")

@@ -1,4 +1,10 @@
-### This script will analyze a SMART for the scenario with estimated weights
+##' This script will analyze a SMART for the scenario with estimated weights.
+##' Note that calc_weights() and calc_score() are designed for settings
+##' with one baseline covariate X and one auxiliary variable L.
+##' These functions need minor adjustments for scenarios where you would like
+##' to model the weights as a function of more baseline covariates. 
+##' For empirical weights, these functions should work as is.  
+
 
 analyze_SMART2 <- function(d,
                            design = 2,
@@ -79,7 +85,8 @@ analyze_SMART2 <- function(d,
 }
 
 ########################### Unique Functions Needed ############################
-### Note: these are mostly functions to compute weights and score functions. 
+##' Note: these are mostly functions to compute weights and score functions. 
+##' There are two functions to calculate the score and either should work. 
 
 calc_weights <- function(d, long, method){
   
